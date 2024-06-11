@@ -9,7 +9,7 @@ THEME_LABEL_TITLE = "dark"
 FRAME_DESGLOSE = "primary"
 ENTRY_STYLE = "info"
 MAIN_FRAME_STYLE = "dark"
-WIDTH_LABELS_FRAME_DESGLOSE = 6
+WIDTH_LABELS_FRAME_DESGLOSE = 7
 
 FONT_COLOR_LETTERS = "#01204E"
 FONT_LETTERS = ("Arial", 11, "bold")
@@ -89,7 +89,7 @@ class App(tb.Window):
     def painting_frame(self):
         num = 1
         for row in range(1, self.fila_cantidad):
-            for column in range(0, 7):
+            for column in range(0, 4):
                 self.frame_desglose_static(num, row, column)
                 num += 1
 
@@ -220,7 +220,7 @@ class App(tb.Window):
             # Obtener los valores correspondientes
             valor_ancho = str(ancho_values.get(clave_ancho, 0))
             valor_alto = str(alto_values.get(clave_alto, 0))
-            self.calculadora(valor_ancho, valor_alto, num)
+            self.mixto_math(valor_ancho, valor_alto, num)
             num += 1
 
         # Actualizar las etiquetas con los nuevos valores
@@ -228,44 +228,45 @@ class App(tb.Window):
             for key, value in values.items():
                 self.labels[num][key].config(text=value)
 
-    def calculadora(self, ancho, alto, num):
+
+    def mixto_math(self, ancho, alto, num):
         # La f al final de la variable significa fraction
         ancho_f = sum(Fraction(s) for s in ancho.split())
         alto_f = sum(Fraction(s) for s in alto.split())
 
         # Riel y Cabezal
-        resto_rc = "1/8"
+        resto_rc = "1 3/8"
         resto_rc_f = sum(Fraction(s) for s in resto_rc.split())
         rc = ancho_f - resto_rc_f
-        rc = self.conversor_a_fraccion_simplificada(rc)
+        rc = self.decimal_to_fraction_inches(rc)
 
         # Ruleta
-        resto_r = "3"
+        resto_r = "1 1/8"
         resto_r_f = sum(Fraction(s) for s in resto_r.split())
-        r = ancho_f / resto_r_f
-        r = self.conversor_a_fraccion_simplificada(r)
+        r = (ancho_f - resto_r_f) / 2
+        r = self.decimal_to_fraction_inches(r)
 
         # Lateral
-        resto_l = "1/2"
+        resto_l = "1/8"
         resto_l_f = sum(Fraction(s) for s in resto_l.split())
         l = alto_f - resto_l_f
-        l = self.conversor_a_fraccion_simplificada(l)
+        l = self.decimal_to_fraction_inches(l)
 
         # Jamba
-        resto_j = "1"
+        resto_j = "2 1/8"
         resto_j_f = sum(Fraction(s) for s in resto_j.split())
         j = alto_f - resto_j_f
-        j = self.conversor_a_fraccion_simplificada(j)
+        j = self.decimal_to_fraction_inches(j)
 
         # Cristal ancho
         resto_can = "6 1/2"
         resto_can_f = sum(Fraction(s) for s in resto_can.split())
-        can = (ancho_f - resto_can_f) / 3
-        can = self.conversor_a_fraccion_simplificada(can)
-
+        can = (ancho_f - resto_can_f) / 2
+        can = self.decimal_to_fraction_inches(can)
+        print(ancho)
         # Cristal alto
-        cal = alto_f - 4
-        cal = self.conversor_a_fraccion_simplificada(cal)
+        cal = alto_f - 5
+        cal = self.decimal_to_fraction_inches(cal)
         self.results[f'desglose_{num}'] = {
             "Riel y Cabezal": rc,
             "Ruleta": r,
@@ -275,28 +276,10 @@ class App(tb.Window):
             "Cristal Alto": cal
         }
 
-    @staticmethod
-    def conversor_a_fraccion_simplificada(value):
-        # Separar la parte entera y la parte decimal
-        whole_part = int(value)
-        decimal_part = value - whole_part
-
-        # Redondear la parte decimal a la fracción más cercana de 1/16
-        fraction_part = round(decimal_part * 16) / 16
-        fraction_part = Fraction(fraction_part).limit_denominator(16)
-
-        # Combinar la parte entera con la fracción
-        if fraction_part.numerator == 0:
-            return f"{whole_part}"
-        elif whole_part == 0:
-            return f"{fraction_part}"
-        else:
-            return f"{whole_part} {fraction_part}"
-
     def buttons(self):
         agregar_fila = tb.Button(self, text="+", command=self.sum_fila, bootstyle="info")
         agregar_fila.grid(row=3, column=3)
-        calculate_button = tb.Button(self, text="Calcular", command=self.update_data, bootstyle="info")
+        calculate_button = tb.Button(self, text="Obtener Valores", command=self.update_data, bootstyle="success")
         calculate_button.grid(row=3, column=1, pady=10)
 
     def sum_fila(self):
@@ -315,19 +298,28 @@ class App(tb.Window):
         for key, value in current_values_alto.items():
             self.alto_values[key].delete(0, END)
             self.alto_values[key].insert(0, value)
+
         self.update_data()
 
-    def show_values(self):
-        # Pasando datos a diccionario interno
-        ancho_values = {}
-        for key, entry in self.ancho_values.items():
-            ancho_values[key] = entry.get()
+    @staticmethod
+    def decimal_to_fraction_inches(value):
+        # Separar la parte entera y la parte decimal
+        whole_part = int(value)
+        decimal_part = value - whole_part
 
-        # Pasando datos a diccionario interno
-        alto_values = {}
-        for key, entry in self.alto_values.items():
-            alto_values[key] = entry.get()
-            
+        # Redondear la parte decimal a la fracción más cercana de 1/16
+        fraction_part = round(decimal_part * 16) / 16
+        fraction_part = Fraction(fraction_part).limit_denominator(16)
+
+        # Combinar la parte entera con la fracción
+        if fraction_part.numerator == 0:
+            return f"{whole_part}"
+        elif whole_part == 0:
+            return f"{fraction_part}"
+        else:
+            return f"{whole_part} {fraction_part}"
+
+
 if __name__ == "__main__":
     app = App()
     app.mainloop()
