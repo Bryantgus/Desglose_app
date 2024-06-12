@@ -22,62 +22,22 @@ class App(tb.Window):
         self.title(TITLE_WINDOW)
         self.geometry("1350x700+0+0")
 
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=0)  # El menú no se debe expandir
-        self.grid_columnconfigure(1, weight=1)  # El canvas debe ocupar todo el espacio restante
-
-        # Crear un Canvas para scroll
-        self.canvas = Canvas(self, background="red")
-        self.canvas.grid(row=0, column=1, columnspan=2, sticky="nsew")
-
-        # Añadir el scrollbar al canvas
-        self.scrollbar = tb.Scrollbar(self, orient="vertical", command=self.canvas.yview, bootstyle="dark-round")
-        self.scrollbar.grid(row=0, column=2, sticky="ns")
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
-
         # Crear el frame dentro del canvas
-        self.main_frame = Frame(self.canvas, bootstyle="info", padding=10)
-        self.main_frame_id = self.canvas.create_window((0, 0), window=self.main_frame, anchor="nw")
-
-        # Ajustar el tamaño del canvas al contenido
-        self.main_frame.bind("<Configure>", self.on_frame_configure)
-
-        # Centrando horizontalmente el main_frame en el Canvas
-        self.center_frame_horizontally_in_canvas()
+        self.main_frame = Frame(self, bootstyle="info", padding=10)
+        self.main_frame.grid(row=0, column=0, columnspan=3)
 
         # Diccionarios para almacenar distintos datos
         self.alto_values = {}
         self.ancho_values = {}
         self.results = {}
-        self.labels = {}
-
+        self.labels_frame_results = {}
+        self.num = 1
         self.starting_app()
-
-    def on_frame_configure(self, event):
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-
-    def center_frame_horizontally_in_canvas(self):
-        # Método para centrar horizontalmente el frame en el canvas
-        canvas_width = self.canvas.winfo_width()
-        frame_width = self.main_frame.winfo_reqwidth()
-
-        # Centrando horizontalmente el main_frame en el canvas
-        self.canvas.coords(self.main_frame_id, (canvas_width - frame_width) / 2, 0)
-
-        # Vinculando el evento de redimensionamiento del canvas para re-centrar horizontalmente el main_frame
-        self.canvas.bind("<Configure>", self.update_frame_horizontal_position)
-
-    def update_frame_horizontal_position(self, event):
-        # Recalcular la posición horizontal del frame cada vez que el canvas cambia de tamaño
-        canvas_width = event.width
-        frame_width = self.main_frame.winfo_reqwidth()
-
-        # Mantener la coordenada y original (0) y centrar solo horizontalmente
-        self.canvas.coords(self.main_frame_id, (canvas_width - frame_width) / 2, 0)
 
     def starting_app(self):
         self.text_title()
-        self.painting_frame()
+        # self.painting_frame()
+        self.frame_desglose(1, 0, 0)
         self.buttons()
 
     def text_title(self):
@@ -86,27 +46,37 @@ class App(tb.Window):
                          width=20, foreground=FONT_COLOR_LETTERS)
         title.grid(row=0, column=0, pady=10)
 
-    def painting_frame(self):
-        num = 1
-        for row in range(1, self.fila_cantidad):
-            for column in range(0, 4):
-                self.frame_desglose_static(num, row, column)
-                num += 1
+    # def painting_frame(self):
+    #
+    #     for row in range(1, 3):
+    #         for column in range(0, 4):
+    #             self.frame_desglose_static(row, column)
 
-    def frame_desglose_static(self, num, row, column):
+    def buttons(self):
+        calculate_button = tb.Button(self, text="Obtener Valores", command=self.update_data, bootstyle="dark")
+        calculate_button.grid(row=1, column=1)
+        next_page = tb.Button(self, text=">", command=lambda: self.pagination(">"), bootstyle="dark")
+        next_page.grid(row=1, column=2)
+        back_page = tb.Button(self, text="<", command=lambda: self.pagination("<"), bootstyle="dark")
+        back_page.grid(row=1, column=0)
+
+    def frame_desglose(self, num, row, column):
         frame_desglose = Frame(self.main_frame, bootstyle=FRAME_DESGLOSE, padding=10)
         frame_desglose.grid(row=row, column=column, padx=5, pady=5)
 
-        numero_label = tb.Label(frame_desglose, text="Nº", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE,
+        numero_label = tb.Label(frame_desglose, text="Nº", anchor="center",
+                                width=WIDTH_LABELS_FRAME_DESGLOSE,
                                 font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         numero_label.grid(row=0, column=0)
 
         numero_desglose = tb.Entry(frame_desglose, justify="center", font=FONT_LETTERS, width=3,
                                    bootstyle=ENTRY_STYLE, foreground=FONT_COLOR_LETTERS)
-        numero_desglose.insert(0, num)
         numero_desglose.grid(row=0, column=1)
 
-        ancho_label = tb.Label(frame_desglose, text="Ancho", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE,
+        numero_desglose.insert(0, num)
+
+        ancho_label = tb.Label(frame_desglose, text="Ancho", anchor="center",
+                               width=WIDTH_LABELS_FRAME_DESGLOSE,
                                font=FONT_LETTERS,
                                foreground=FONT_COLOR_LETTERS)
         ancho_label.grid(row=1, column=0, pady=2)
@@ -118,8 +88,16 @@ class App(tb.Window):
         alto_label.grid(row=1, column=1, pady=2)
 
         # Crear entries
-        self.create_ancho_values(frame_desglose, 'ancho', num)
-        self.create_alto_values(frame_desglose, 'alto', num)
+        ancho_entry = tb.Entry(frame_desglose, justify="center", font=FONT_LETTERS, width=7,
+                               bootstyle=ENTRY_STYLE,
+                               foreground=FONT_COLOR_LETTERS)
+        ancho_entry.grid(row=2, column=0, pady=5)
+        self.ancho_values[f'ancho_{num}'] = ancho_entry
+
+        alto_entry = tb.Entry(frame_desglose, justify="center", font=FONT_LETTERS, width=7, bootstyle=ENTRY_STYLE,
+                              foreground=FONT_COLOR_LETTERS)
+        alto_entry.grid(row=2, column=1, pady=5)
+        self.alto_values[f'alto_{num}'] = alto_entry
 
         # Riel y Cabezal
         riel_cabezal = tb.Label(frame_desglose, text="RC", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE,
@@ -151,57 +129,45 @@ class App(tb.Window):
                                 padding=2, font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         cristal_alto.grid(row=8, column=0, padx=5, pady=1)
 
-        # Results
-        self.labels[f'desglose_{num}'] = {}
+        self.labels_frame_results[f'desglose_{num}'] = {}
         # Riel y cabezal
         rc = tb.Label(frame_desglose, text="", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE, padding=2,
                       font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         rc.grid(row=3, column=1, padx=5, pady=1)
-        self.labels[f'desglose_{num}']['Riel y Cabezal'] = rc
+        self.labels_frame_results[f'desglose_{num}']['Riel y Cabezal'] = rc
 
         # Ruleta
         r = tb.Label(frame_desglose, text="", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE, padding=2,
                      font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         r.grid(row=4, column=1, padx=5, pady=1)
-        self.labels[f'desglose_{num}']['Ruleta'] = r
+        self.labels_frame_results[f'desglose_{num}']['Ruleta'] = r
 
         # Lateral
         l = tb.Label(frame_desglose, text="", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE, padding=2,
                      font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         l.grid(row=5, column=1, padx=5, pady=1)
-        self.labels[f'desglose_{num}']['Lateral'] = l
+        self.labels_frame_results[f'desglose_{num}']['Lateral'] = l
 
         # Jamba
         j = tb.Label(frame_desglose, text="", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE, padding=2,
                      font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         j.grid(row=6, column=1, padx=5, pady=1)
-        self.labels[f'desglose_{num}']['Jamba'] = j
+        self.labels_frame_results[f'desglose_{num}']['Jamba'] = j
 
         # Cristal Ancho
         can = tb.Label(frame_desglose, text="", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE, padding=2,
                        font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         can.grid(row=7, column=1, padx=5, pady=1)
-        self.labels[f'desglose_{num}']['Cristal Ancho'] = can
+        self.labels_frame_results[f'desglose_{num}']['Cristal Ancho'] = can
 
         # Cristal Alto
         cal = tb.Label(frame_desglose, text="", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE, padding=2,
                        font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         cal.grid(row=8, column=1, padx=5, pady=1)
-        self.labels[f'desglose_{num}']['Cristal Alto'] = cal
-
-    def create_ancho_values(self, frame, entry_type, num):
-        entry = tb.Entry(frame, justify="center", font=FONT_LETTERS, width=7, bootstyle=ENTRY_STYLE,
-                         foreground=FONT_COLOR_LETTERS)
-        entry.grid(row=2, column=0, pady=5)
-        self.ancho_values[f'{entry_type}_{num}'] = entry
-
-    def create_alto_values(self, frame, entry_type, num):
-        entry = tb.Entry(frame, justify="center", font=FONT_LETTERS, width=7, bootstyle=ENTRY_STYLE,
-                         foreground=FONT_COLOR_LETTERS)
-        entry.grid(row=2, column=1, pady=5)
-        self.alto_values[f'{entry_type}_{num}'] = entry
+        self.labels_frame_results[f'desglose_{num}']['Cristal Alto'] = cal
 
     def update_data(self):
+
         # Pasando datos a diccionario interno
         ancho_values = {}
         for key, entry in self.ancho_values.items():
@@ -226,8 +192,7 @@ class App(tb.Window):
         # Actualizar las etiquetas con los nuevos valores
         for num, values in self.results.items():
             for key, value in values.items():
-                self.labels[num][key].config(text=value)
-
+                self.labels_frame_results[num][key].config(text=value)
 
     def mixto_math(self, ancho, alto, num):
         # La f al final de la variable significa fraction
@@ -276,31 +241,6 @@ class App(tb.Window):
             "Cristal Alto": cal
         }
 
-    def buttons(self):
-        agregar_fila = tb.Button(self, text="+", command=self.sum_fila, bootstyle="info")
-        agregar_fila.grid(row=3, column=3)
-        calculate_button = tb.Button(self, text="Obtener Valores", command=self.update_data, bootstyle="success")
-        calculate_button.grid(row=3, column=1, pady=10)
-
-    def sum_fila(self):
-        # Guardar los valores actuales de los entries antes de agregar nuevas filas
-        current_values_ancho = {key: entry.get() for key, entry in self.ancho_values.items()}
-        current_values_alto = {key: entry.get() for key, entry in self.alto_values.items()}
-
-        self.fila_cantidad += 1
-        self.painting_frame()
-
-        # Restaurar los valores de los entries existentes
-        for key, value in current_values_ancho.items():
-            self.ancho_values[key].delete(0, END)
-            self.ancho_values[key].insert(0, value)
-
-        for key, value in current_values_alto.items():
-            self.alto_values[key].delete(0, END)
-            self.alto_values[key].insert(0, value)
-
-        self.update_data()
-
     @staticmethod
     def decimal_to_fraction_inches(value):
         # Separar la parte entera y la parte decimal
@@ -318,6 +258,27 @@ class App(tb.Window):
             return f"{fraction_part}"
         else:
             return f"{whole_part} {fraction_part}"
+
+    def pagination(self, next_or_previous):
+
+        if next_or_previous == "<":
+            self.num -= 16
+        # Guardar los valores actuales de los entries antes de agregar nuevas filas
+        current_values_ancho = {key: entry.get() for key, entry in self.ancho_values.items()}
+        current_values_alto = {key: entry.get() for key, entry in self.alto_values.items()}
+
+        self.painting_frame()
+
+        # Restaurar los valores de los entries existentes
+        for key, value in current_values_ancho.items():
+            self.ancho_values[key].delete(0, END)
+            self.ancho_values[key].insert(0, value)
+
+        for key, value in current_values_alto.items():
+            self.alto_values[key].delete(0, END)
+            self.alto_values[key].insert(0, value)
+
+        self.update_data()
 
 
 if __name__ == "__main__":
