@@ -26,18 +26,21 @@ class App(tb.Window):
         self.main_frame = Frame(self, bootstyle="info", padding=10)
         self.main_frame.grid(row=0, column=0, columnspan=3)
 
-        # Diccionarios para almacenar distintos datos
-        self.alto_values = {}
+        # Diccionarios que almacena los valores que cambiaran de cada frame
+        self.alto_entry = {}
+        self.ancho_entry = {}
+        self.num_entry = {}
+        self.labels_results = {}
+        # Dicionarios que almacenan los datos de los frames
         self.ancho_values = {}
+        self.alto_values = {}
         self.results = {}
-        self.labels_frame_results = {}
-        self.num = 1
         self.starting_app()
 
     def starting_app(self):
         self.text_title()
-        # self.painting_frame()
-        self.frame_desglose(1, 0, 0)
+        self.painting_frame()
+
         self.buttons()
 
     def text_title(self):
@@ -46,11 +49,12 @@ class App(tb.Window):
                          width=20, foreground=FONT_COLOR_LETTERS)
         title.grid(row=0, column=0, pady=10)
 
-    # def painting_frame(self):
-    #
-    #     for row in range(1, 3):
-    #         for column in range(0, 4):
-    #             self.frame_desglose_static(row, column)
+    def painting_frame(self):
+        num = 1
+        for row in range(1, 3):
+            for column in range(0, 4):
+                self.frame_desglose(num, row, column)
+                num += 1
 
     def buttons(self):
         calculate_button = tb.Button(self, text="Obtener Valores", command=self.update_data, bootstyle="dark")
@@ -72,6 +76,7 @@ class App(tb.Window):
         numero_desglose = tb.Entry(frame_desglose, justify="center", font=FONT_LETTERS, width=3,
                                    bootstyle=ENTRY_STYLE, foreground=FONT_COLOR_LETTERS)
         numero_desglose.grid(row=0, column=1)
+        self.num_entry[f"entry_{num}"] = numero_desglose
 
         numero_desglose.insert(0, num)
 
@@ -92,12 +97,12 @@ class App(tb.Window):
                                bootstyle=ENTRY_STYLE,
                                foreground=FONT_COLOR_LETTERS)
         ancho_entry.grid(row=2, column=0, pady=5)
-        self.ancho_values[f'ancho_{num}'] = ancho_entry
+        self.ancho_entry[f'ancho_{num}'] = ancho_entry
 
         alto_entry = tb.Entry(frame_desglose, justify="center", font=FONT_LETTERS, width=7, bootstyle=ENTRY_STYLE,
                               foreground=FONT_COLOR_LETTERS)
         alto_entry.grid(row=2, column=1, pady=5)
-        self.alto_values[f'alto_{num}'] = alto_entry
+        self.alto_entry[f'alto_{num}'] = alto_entry
 
         # Riel y Cabezal
         riel_cabezal = tb.Label(frame_desglose, text="RC", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE,
@@ -129,55 +134,59 @@ class App(tb.Window):
                                 padding=2, font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         cristal_alto.grid(row=8, column=0, padx=5, pady=1)
 
-        self.labels_frame_results[f'desglose_{num}'] = {}
+        self.labels_results[f'desglose_{num}'] = {}
         # Riel y cabezal
         rc = tb.Label(frame_desglose, text="", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE, padding=2,
                       font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         rc.grid(row=3, column=1, padx=5, pady=1)
-        self.labels_frame_results[f'desglose_{num}']['Riel y Cabezal'] = rc
+        self.labels_results[f'desglose_{num}']['Riel y Cabezal'] = rc
 
         # Ruleta
         r = tb.Label(frame_desglose, text="", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE, padding=2,
                      font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         r.grid(row=4, column=1, padx=5, pady=1)
-        self.labels_frame_results[f'desglose_{num}']['Ruleta'] = r
+        self.labels_results[f'desglose_{num}']['Ruleta'] = r
 
         # Lateral
         l = tb.Label(frame_desglose, text="", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE, padding=2,
                      font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         l.grid(row=5, column=1, padx=5, pady=1)
-        self.labels_frame_results[f'desglose_{num}']['Lateral'] = l
+        self.labels_results[f'desglose_{num}']['Lateral'] = l
 
         # Jamba
         j = tb.Label(frame_desglose, text="", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE, padding=2,
                      font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         j.grid(row=6, column=1, padx=5, pady=1)
-        self.labels_frame_results[f'desglose_{num}']['Jamba'] = j
+        self.labels_results[f'desglose_{num}']['Jamba'] = j
 
         # Cristal Ancho
         can = tb.Label(frame_desglose, text="", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE, padding=2,
                        font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         can.grid(row=7, column=1, padx=5, pady=1)
-        self.labels_frame_results[f'desglose_{num}']['Cristal Ancho'] = can
+        self.labels_results[f'desglose_{num}']['Cristal Ancho'] = can
 
         # Cristal Alto
         cal = tb.Label(frame_desglose, text="", anchor="center", width=WIDTH_LABELS_FRAME_DESGLOSE, padding=2,
                        font=FONT_LETTERS, foreground=FONT_COLOR_LETTERS)
         cal.grid(row=8, column=1, padx=5, pady=1)
-        self.labels_frame_results[f'desglose_{num}']['Cristal Alto'] = cal
+        self.labels_results[f'desglose_{num}']['Cristal Alto'] = cal
 
     def update_data(self):
 
         # Pasando datos a diccionario interno
         ancho_values = {}
-        for key, entry in self.ancho_values.items():
+        num1 = 1
+        for key, entry in self.ancho_entry.items():
             ancho_values[key] = entry.get()
-
+            self.ancho_values[f"alto_{num1}"] = entry.get
+            num1 += 1
         # Pasando datos a diccionario interno
         alto_values = {}
-        for key, entry in self.alto_values.items():
+        num2 = 1
+        for key, entry in self.alto_entry.items():
             alto_values[key] = entry.get()
-
+            self.ancho_values[f"alto_{num1}"] = entry.get
+            num2 += 1
         # Sumar los valores correspondientes
         num = 1
         for i in range(1, len(alto_values) + 1):
@@ -192,7 +201,7 @@ class App(tb.Window):
         # Actualizar las etiquetas con los nuevos valores
         for num, values in self.results.items():
             for key, value in values.items():
-                self.labels_frame_results[num][key].config(text=value)
+                self.labels_results[num][key].config(text=value)
 
     def mixto_math(self, ancho, alto, num):
         # La f al final de la variable significa fraction
@@ -260,25 +269,17 @@ class App(tb.Window):
             return f"{whole_part} {fraction_part}"
 
     def pagination(self, next_or_previous):
-
+        entry1 = int(self.num_entry[f"entry_1"].get())
         if next_or_previous == "<":
-            self.num -= 16
-        # Guardar los valores actuales de los entries antes de agregar nuevas filas
-        current_values_ancho = {key: entry.get() for key, entry in self.ancho_values.items()}
-        current_values_alto = {key: entry.get() for key, entry in self.alto_values.items()}
-
-        self.painting_frame()
-
-        # Restaurar los valores de los entries existentes
-        for key, value in current_values_ancho.items():
-            self.ancho_values[key].delete(0, END)
-            self.ancho_values[key].insert(0, value)
-
-        for key, value in current_values_alto.items():
-            self.alto_values[key].delete(0, END)
-            self.alto_values[key].insert(0, value)
-
-        self.update_data()
+            if entry1 != 1:
+                entry1 -= 8
+        else:
+            entry1 += 8
+        num1 = 1
+        for a in range(entry1, entry1 + 8):
+            self.num_entry[f"entry_{num1}"].delete(0, tk.END)
+            self.num_entry[f"entry_{num1}"].insert(0, a)
+            num1 += 1
 
 
 if __name__ == "__main__":
