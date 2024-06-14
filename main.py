@@ -14,9 +14,6 @@ WIDTH_LABELS_FRAME_DESGLOSE = 7
 FONT_COLOR_LETTERS = "#01204E"
 FONT_LETTERS = ("Arial", 11, "bold")
 
-inicio el programa
-al escribir un valor en un entry se guarda si presiono update o pagination con su respectiva numeracion
-luego procede a eliminar lo que hay en los entrys cuando se llame al metodo pagination
 
 class App(tb.Window):
     def __init__(self):
@@ -62,7 +59,8 @@ class App(tb.Window):
                 num += 1
 
     def buttons(self):
-        calculate_button = tb.Button(self, text="Obtener Valores", command=self.update_data, bootstyle="dark")
+        calculate_button = tb.Button(self, text="Obtener Valores", command=lambda: self.pagination("None"),
+                                     bootstyle="dark")
         calculate_button.grid(row=1, column=1)
         next_page = tb.Button(self, text=">", command=lambda: self.pagination(">"), bootstyle="dark")
         next_page.grid(row=1, column=2)
@@ -176,20 +174,19 @@ class App(tb.Window):
         cal.grid(row=8, column=1, padx=5, pady=1)
         self.labels_results[f'desglose_{num}']['Cristal Alto'] = cal
 
-    def update_data(self):
+    def get_values_entrys(self):
         self.actual_label = int(self.num_entry[f"entry_1"].get())
         # Pasando datos a diccionario interno
         ancho_values = {}
+        num1 = 1
         for key, entry in self.ancho_entry.items():
             ancho_values[key] = entry.get()
-            self.ancho_values[f"ancho_{num1}"] = entry.get
             num1 += 1
         # Pasando datos a diccionario interno
         alto_values = {}
         num2 = 1
         for key, entry in self.alto_entry.items():
             alto_values[key] = entry.get()
-            self.ancho_values[f"alto_{num1}"] = entry.get
             num2 += 1
 
         for i in range(self.actual_label, self.actual_label + 8):
@@ -200,11 +197,7 @@ class App(tb.Window):
             valor_alto = str(alto_values.get(clave_alto, 0))
             self.mixto_math(valor_ancho, valor_alto, i)
 
-        # Actualizar las etiquetas con los nuevos valores solo dentro del rango
-        for num in range(self.actual_label, self.actual_label + 8):
-            if f'desglose_{num}' in self.results:
-                for key, value in self.results[f'desglose_{num}'].items():
-                    self.labels_results[f'desglose_{num}'][key].config(text=value)
+            self.update_data()
 
     def mixto_math(self, ancho, alto, num):
         # La f al final de la variable significa fraction
@@ -240,7 +233,7 @@ class App(tb.Window):
         resto_can_f = sum(Fraction(s) for s in resto_can.split())
         can = (ancho_f - resto_can_f) / 2
         can = self.decimal_to_fraction_inches(can)
-        print(ancho)
+
         # Cristal alto
         cal = alto_f - 5
         cal = self.decimal_to_fraction_inches(cal)
@@ -252,7 +245,7 @@ class App(tb.Window):
             "Cristal Ancho": can,
             "Cristal Alto": cal
         }
-        self.results[f'desglose_{num+8}'] = {
+        self.results[f'desglose_{num + 8}'] = {
             "Riel y Cabezal": None,
             "Ruleta": None,
             "Lateral": None,
@@ -280,23 +273,53 @@ class App(tb.Window):
             return f"{whole_part} {fraction_part}"
 
     def pagination(self, next_or_previous):
+        # Guardando datos de los entrys ancho y alto
+        actual_label = self.actual_label
+        for key in self.ancho_entry:
+            self.ancho_values[f'ancho_{actual_label}'] = self.ancho_entry[key].get()
+            actual_label += 1
+        actual_label = self.actual_label
+        for key in self.alto_entry:
+            self.alto_values[f'alto_{actual_label}'] = self.alto_entry[key].get()
+            actual_label += 1
+        # Guardando datos de los labels results
+        actual_label = self.actual_label
+        for a in range(1, 9):
+            self.results[f'desglose_{actual_label}']["Riel y Cabezal"] = self.labels_results[f'desglose_{a}']["Riel y Cabezal"].get( )
+
+            actual_label += 1
+
         if next_or_previous == "<":
             if self.actual_label != 1:
                 self.actual_label -= 8
         else:
             self.actual_label += 8
-        num1 = self.actual_label
-        print(num1)
-        # Actualizando los datos de los entry's y labels
-        for a in range(1, 8):
+
+        num = self.actual_label
+        # Actualizando el número de desgloses
+        for a in range(1, 9):
             self.num_entry[f'entry_{a}'].delete(0, tk.END)
-            self.num_entry[f'entry_{a}'].insert(0, num1)
-            self.ancho_entry[f'ancho_{a}'].delete(0, tk.END)
-            print(a)
-            self.ancho_entry[f'ancho_{a}'].insert(0, self.ancho_values[f'ancho_{num1}'])
-            num1 += 1
+            self.num_entry[f'entry_{a}'].insert(0, num)
+
+            # Verificar si es la primera vez que se visita este rango de labels
+            if f'ancho_{num}' not in self.ancho_values:
+                # Primera vez: asignar valores nulos
+                self.ancho_entry[f'ancho_{a}'].delete(0, tk.END)
+                self.ancho_entry[f'ancho_{a}'].insert(0, "")
+                self.alto_entry[f'alto_{a}'].delete(0, tk.END)
+                self.alto_entry[f'alto_{a}'].insert(0, "")
+            else:
+                # Ya visitado: cargar los valores almacenados
+                self.ancho_entry[f'ancho_{a}'].delete(0, tk.END)
+                self.ancho_entry[f'ancho_{a}'].insert(0, self.ancho_values[f'ancho_{num}'])
+                self.alto_entry[f'alto_{a}'].delete(0, tk.END)
+                self.alto_entry[f'alto_{a}'].insert(0, self.alto_values[f'alto_{num}'])
+            num += 1
+
+        # Después de actualizar los campos de entrada, llamar a get_values_entrys para recalcular y actualizar los resultados
+        self.get_values_entrys()
 
 
 if __name__ == "__main__":
     app = App()
-app.mainloop()
+    app.mainloop()
