@@ -59,7 +59,7 @@ class App(tb.Window):
                 num += 1
 
     def buttons(self):
-        calculate_button = tb.Button(self, text="Obtener Valores", command=lambda: self.pagination("None"),
+        calculate_button = tb.Button(self, text="Obtener Valores", command=self.get_values_entrys(),
                                      bootstyle="dark")
         calculate_button.grid(row=1, column=1)
         next_page = tb.Button(self, text=">", command=lambda: self.pagination(">"), bootstyle="dark")
@@ -197,7 +197,7 @@ class App(tb.Window):
             valor_alto = str(alto_values.get(clave_alto, 0))
             self.mixto_math(valor_ancho, valor_alto, i)
 
-            self.update_data()
+
 
     def mixto_math(self, ancho, alto, num):
         # La f al final de la variable significa fraction
@@ -283,11 +283,11 @@ class App(tb.Window):
             self.alto_values[f'alto_{actual_label}'] = self.alto_entry[key].get()
             actual_label += 1
         # Guardando datos de los labels results
-        actual_label = self.actual_label
-        for a in range(1, 9):
-            self.results[f'desglose_{actual_label}']["Riel y Cabezal"] = self.labels_results[f'desglose_{a}']["Riel y Cabezal"].get( )
-
-            actual_label += 1
+        # actual_label = self.actual_label
+        # for a in range(1, 9):
+            # self.results[f'desglose_{actual_label}']["Riel y Cabezal"] = self.labels_results[f'desglose_{a}']["Riel y Cabezal"].get()
+            #
+            # actual_label += 1
 
         if next_or_previous == "<":
             if self.actual_label != 1:
