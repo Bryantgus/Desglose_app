@@ -42,7 +42,6 @@ class App(tb.Window):
     def starting_app(self):
         self.text_title()
         self.painting_frame()
-
         self.buttons()
 
     def text_title(self):
@@ -59,7 +58,7 @@ class App(tb.Window):
                 num += 1
 
     def buttons(self):
-        calculate_button = tb.Button(self, text="Obtener Valores", command=self.get_values_entrys(),
+        calculate_button = tb.Button(self, text="Calcular", command= lambda: self.pagination("None"),
                                      bootstyle="dark")
         calculate_button.grid(row=1, column=1)
         next_page = tb.Button(self, text=">", command=lambda: self.pagination(">"), bootstyle="dark")
@@ -192,9 +191,11 @@ class App(tb.Window):
         for i in range(self.actual_label, self.actual_label + 8):
             clave_ancho = f"ancho_{i}"
             clave_alto = f"alto_{i}"
+            print(clave_alto, clave_ancho)
             # Obtener los valores correspondientes
             valor_ancho = str(ancho_values.get(clave_ancho, 0))
             valor_alto = str(alto_values.get(clave_alto, 0))
+            print(valor_alto, valor_ancho)
             self.mixto_math(valor_ancho, valor_alto, i)
 
 
@@ -233,7 +234,7 @@ class App(tb.Window):
         resto_can_f = sum(Fraction(s) for s in resto_can.split())
         can = (ancho_f - resto_can_f) / 2
         can = self.decimal_to_fraction_inches(can)
-
+        print(can)
         # Cristal alto
         cal = alto_f - 5
         cal = self.decimal_to_fraction_inches(cal)
@@ -292,9 +293,10 @@ class App(tb.Window):
         if next_or_previous == "<":
             if self.actual_label != 1:
                 self.actual_label -= 8
-        else:
+        elif next_or_previous == ">":
             self.actual_label += 8
-
+        else:
+            pass
         num = self.actual_label
         # Actualizando el número de desgloses
         for a in range(1, 9):
@@ -317,8 +319,11 @@ class App(tb.Window):
             num += 1
 
         # Después de actualizar los campos de entrada, llamar a get_values_entrys para recalcular y actualizar los resultados
+        for key, value in self.ancho_values.items():
+            print(f"{key}: {value}")
+        for key, value in self.alto_values.items():
+            print(f"{key}: {value}")
         self.get_values_entrys()
-
 
 if __name__ == "__main__":
     app = App()
