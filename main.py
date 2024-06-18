@@ -1,8 +1,11 @@
 import ttkbootstrap as tb
 from openpyxl.reader.excel import load_workbook
+from openpyxl.workbook import Workbook
 from ttkbootstrap import *
 from fractions import Fraction
-from openpyxl import  workbook
+from openpyxl import workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
 # Styles
 #morph
 THEME_WINDOW = "darkly"
@@ -342,37 +345,47 @@ class App(tb.Window):
         self.calculate_values()
         self.update_labels()
 
+
     def export_to_excel(self):
         archivo_excel = 'C:/Users/EJ/PycharmProjects/Desglose/Formato desglose.xlsx'
+
+
+        # Copiar el archivo Excel original al nuevo con estilos
+
+        # Cargar el archivo nuevo
         libro = load_workbook(archivo_excel)
         hoja = libro['datos']
 
-        # numm = 1
+        # Escribir los valores de self.ancho_values en las columnas A y B
+        numm = 1
+        for key, value in self.ancho_values.items():
+            hoja[f'A{numm}'] = key
+            hoja[f'B{numm}'] = value
+            numm += 1
 
-        # # Iterar sobre self.results y guardar los datos en Excel
-        # for desglose_key, resultados in self.results.items():
-        #     hoja[f'E{numm}'] = desglose_key  # Guardar la clave del desglose en la columna E
-        #
-        #     # Guardar cada resultado en las columnas F, G, H respectivamente
-        #     hoja[f'F{numm}'] = resultados.get("Riel y Cabezal", "")
-        #     hoja[f'G{numm}'] = resultados.get("Ruleta", "")
-        #     hoja[f'H{numm}'] = resultados.get("Lateral", "")
-        #     hoja[f'I{numm}'] = resultados.get("Jamba", "")
-        #     hoja[f'J{numm}'] = resultados.get("Cristal Ancho", "")
-        #     hoja[f'K{numm}'] = resultados.get("Cristal Alto", "")
-        #
-        #     numm += 1
+        # Escribir los valores de self.alto_values en las columnas C y D
+        numm = 1
+        for key, value in self.alto_values.items():
+            hoja[f'C{numm}'] = key
+            hoja[f'D{numm}'] = value
+            numm += 1
 
-        hoja = libro['1-8']
-        letters = ['A', 'D', 'G']
-        num_letter = 0
-        num = 4
+        # Escribir los valores de self.results
+        row = numm  # Continuar desde la última fila usada
 
-        for i in range(0, 4):
-            for key, value in self.ancho_values.items():
-                hoja[f'{letters[num_letter]}{num}'] = value
-            num += 10
+        for item_key, item_values in self.results.items():
+            hoja[f'A{row}'] = item_key  # Escribir la clave principal en la columna A
 
+            col = 2  # Empezar en la columna B (2 en base 1)
+            for sub_key, sub_value in item_values.items():
+                # Escribir el sub_key y sub_value en las columnas adyacentes
+                hoja.cell(row=row, column=col, value=sub_key)  # Columna B, C, D, etc.
+                hoja.cell(row=row, column=col + 1, value=sub_value)  # Columna C, D, E, etc.
+                col += 2  # Incrementar en 2 para mantener pares clave-valor juntos
+
+            row += 1  # Mover a la siguiente fila
+
+        # Guardar el archivo Excel modificado
         libro.save(archivo_excel)
         print("Archivo guardado exitosamente.")
 
