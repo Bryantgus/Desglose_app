@@ -3,8 +3,9 @@ from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
 from ttkbootstrap import *
 from fractions import Fraction
-from openpyxl import workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl import load_workbook, Workbook
+from openpyxl.styles import PatternFill, Border, Alignment, Protection, Font
+import shutil
 
 # Styles
 #morph
@@ -345,48 +346,108 @@ class App(tb.Window):
         self.calculate_values()
         self.update_labels()
 
+    # @staticmethod
+    # def copy_excel_file(source_path, destination_path):
+    #     # Cargar el libro de trabajo original
+    #     source_wb = load_workbook(source_path)
+    #
+    #     # Crear un nuevo libro de trabajo para la copia
+    #     destination_wb = Workbook()
+    #
+    #     # Recorrer cada hoja del libro de trabajo original
+    #     for sheet_name in source_wb.sheetnames:
+    #         source_sheet = source_wb[sheet_name]
+    #
+    #         # Crear una nueva hoja en el libro de destino con el mismo nombre
+    #         if sheet_name in destination_wb.sheetnames:
+    #             dest_sheet = destination_wb[sheet_name]
+    #         else:
+    #             dest_sheet = destination_wb.create_sheet(title=sheet_name)
+    #
+    #         # Recorrer cada celda en la hoja original
+    #         for row in source_sheet.iter_rows():
+    #             for cell in row:
+    #                 # Copiar el valor de la celda
+    #                 dest_cell = dest_sheet[cell.coordinate]
+    #                 dest_cell.value = cell.value
+    #
+    #                 # Copiar el estilo de la celda
+    #                 if cell.has_style:
+    #                     dest_cell.font = Font(name=cell.font.name,
+    #                                           size=cell.font.size,
+    #                                           bold=cell.font.bold,
+    #                                           italic=cell.font.italic,
+    #                                           vertAlign=cell.font.vertAlign,
+    #                                           underline=cell.font.underline,
+    #                                           strike=cell.font.strike,
+    #                                           color=cell.font.color)
+    #                     dest_cell.fill = PatternFill(fill_type=cell.fill.fill_type,
+    #                                                  start_color=cell.fill.start_color,
+    #                                                  end_color=cell.fill.end_color)
+    #                     dest_cell.border = Border(left=cell.border.left,
+    #                                               right=cell.border.right,
+    #                                               top=cell.border.top,
+    #                                               bottom=cell.border.bottom)
+    #                     dest_cell.alignment = Alignment(horizontal=cell.alignment.horizontal,
+    #                                                     vertical=cell.alignment.vertical,
+    #                                                     text_rotation=cell.alignment.text_rotation,
+    #                                                     wrap_text=cell.alignment.wrap_text,
+    #                                                     shrink_to_fit=cell.alignment.shrink_to_fit,
+    #                                                     indent=cell.alignment.indent)
+    #                     dest_cell.number_format = cell.number_format
+    #                     dest_cell.protection = Protection(locked=cell.protection.locked,
+    #                                                       hidden=cell.protection.hidden)
+    #
+    #         # Copiar el ancho de las columnas y el alto de las filas
+    #         for col in source_sheet.column_dimensions:
+    #             dest_sheet.column_dimensions[col].width = source_sheet.column_dimensions[col].width
+    #
+    #         for row in source_sheet.row_dimensions:
+    #             dest_sheet.row_dimensions[row].height = source_sheet.row_dimensions[row].height
+    #
+    #         # Copiar las imágenes de la hoja
+    #         for image in source_sheet._images:
+    #             dest_sheet.add_image(image, image.anchor)
+    #
+    #         # Copiar el estado de ajuste de página
+    #         dest_sheet.page_setup = source_sheet.page_setup
+    #
+    #     # Guardar el nuevo archivo Excel en la ruta de destino
+    #     destination_wb.save(destination_path)
+    def copy_excel_file(self, src, dest):
+        shutil.copyfile(src, dest)
 
     def export_to_excel(self):
         archivo_excel = 'C:/Users/EJ/PycharmProjects/Desglose/Formato desglose.xlsx'
-
-
+        nuevo_excel = 'C:/Users/EJ/PycharmProjects/Desglose/Formato copia.xlsx'
+        self.copy_excel_file(archivo_excel, nuevo_excel)
         # Copiar el archivo Excel original al nuevo con estilos
 
         # Cargar el archivo nuevo
-        libro = load_workbook(archivo_excel)
+        libro = load_workbook(nuevo_excel)
         hoja = libro['datos']
 
-        # Escribir los valores de self.ancho_values en las columnas A y B
-        numm = 1
+        # Inicializar la fila de inicio
+        fila = 1
+        columna = 1
+
+        # Escribir los valores de self.ancho_values en columnas A y B
         for key, value in self.ancho_values.items():
-            hoja[f'A{numm}'] = key
-            hoja[f'B{numm}'] = value
-            numm += 1
+            hoja.cell(row=fila, column=columna, value=key)  # Columna A
+            hoja.cell(row=fila + 1, column=columna, value=value)  # Columna B
+            fila += 2  # Mover a la siguiente par de columnas (C y D)
 
-        # Escribir los valores de self.alto_values en las columnas C y D
-        numm = 1
+        fila = 1
+        columna = 2
+        # Escribir los valores de self.alto_values en columnas C y D
         for key, value in self.alto_values.items():
-            hoja[f'C{numm}'] = key
-            hoja[f'D{numm}'] = value
-            numm += 1
+            hoja.cell(row=fila, column=columna, value=key)  # Columna C
+            hoja.cell(row=fila + 1, column=columna, value=value)  # Columna D
+            fila += 2  # Mover a la siguiente par de columnas (E y F)
 
-        # Escribir los valores de self.results
-        row = numm  # Continuar desde la última fila usada
-
-        for item_key, item_values in self.results.items():
-            hoja[f'A{row}'] = item_key  # Escribir la clave principal en la columna A
-
-            col = 2  # Empezar en la columna B (2 en base 1)
-            for sub_key, sub_value in item_values.items():
-                # Escribir el sub_key y sub_value en las columnas adyacentes
-                hoja.cell(row=row, column=col, value=sub_key)  # Columna B, C, D, etc.
-                hoja.cell(row=row, column=col + 1, value=sub_value)  # Columna C, D, E, etc.
-                col += 2  # Incrementar en 2 para mantener pares clave-valor juntos
-
-            row += 1  # Mover a la siguiente fila
 
         # Guardar el archivo Excel modificado
-        libro.save(archivo_excel)
+        libro.save(nuevo_excel)
         print("Archivo guardado exitosamente.")
 
 
