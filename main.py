@@ -333,6 +333,7 @@ class App(tb.Window):
 
     def pagination(self, next_or_previous):
         self.saving_entrys()
+        self.calculate_values()
         # Guardando datos de los entrys ancho y alto
         if next_or_previous == "<":
             if self.actual_label != 1:
@@ -396,7 +397,10 @@ class App(tb.Window):
         for key, value in self.results.items():
             columna = 3
             for sub_key, sub_value in value.items():
-                print(sub_key, sub_value)
+                hoja.cell(row=fila, column=columna, value=sub_key)
+                hoja.cell(row=fila + 1, column=columna, value=sub_value)
+                columna += 1
+            fila += 2
 
 
         libro.save(nuevo_excel)
