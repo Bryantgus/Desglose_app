@@ -1,4 +1,5 @@
 import ttkbootstrap as tb
+from tkinter import ttk
 from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
 from ttkbootstrap import *
@@ -65,10 +66,20 @@ class App(tb.Window):
         export_menu.add_command(label="Exportar", command=self.export_to_excel)
 
     def text_title(self):
-        title = tb.Label(self.main_frame, bootstyle="secondary", text="Desglose P65", font=FONT_LETTERS,
+        change_title = None
+        num = 0
+        # Configurar estilo para el Combobox
+
+        opciones = ["P 65, 2 Vías", "P 65, 3 Vías", "Tradicional, 2 Vías", "Tradicional, 3 Vías"]
+        title = tb.Label(self.main_frame, bootstyle="secondary", text=opciones[num], font=FONT_LETTERS,
                          anchor="center",
                          width=20, foreground=FONT_COLOR_LETTERS)
         title.grid(row=0, column=0, pady=10)
+        options = ttk.Combobox(self.main_frame, values=opciones, bootstyle="dark")
+        options.configure(cursor='hand2', state='readonly')
+        options.grid(row=0, column=1, pady=10)
+
+
 
     def painting_frame(self):
         num = 1
@@ -185,6 +196,7 @@ class App(tb.Window):
         self.labels_results[f'desglose_{num}']['Cristal Alto'] = cal
 
     def buttons(self):
+
         calculate_button = tb.Button(self, text="Calcular", command=self.calculate_values,
                                      bootstyle="dark")
         calculate_button.grid(row=1, column=1)
