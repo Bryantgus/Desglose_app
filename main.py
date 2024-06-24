@@ -27,10 +27,10 @@ class App(tb.Window):
         super().__init__(themename=THEME_WINDOW)
         self.fila_cantidad = 2
         self.title(TITLE_WINDOW)
-        self.geometry("1350x700+0+0")
+        self.geometry("750x700+300+0")
 
         # Crear el frame dentro del canvas
-        self.main_frame = Frame(self, bootstyle="info", padding=10)
+        self.main_frame = Frame(self, bootstyle="info", padding=3 )
         self.main_frame.grid(row=0, column=0, columnspan=3)
 
         # Diccionarios que almacena los valores que cambiaran de cada frame
@@ -49,7 +49,7 @@ class App(tb.Window):
         self.cal = {}
         self.results = {}
         self.starting_app()
-
+        self.type_desglose = 1
         self.actual_label = 1
 
     def starting_app(self):
@@ -66,20 +66,25 @@ class App(tb.Window):
         export_menu.add_command(label="Exportar", command=self.export_to_excel)
 
     def text_title(self):
-        change_title = None
-        num = 0
-        # Configurar estilo para el Combobox
-
         opciones = ["P 65, 2 Vías", "P 65, 3 Vías", "Tradicional, 2 Vías", "Tradicional, 3 Vías"]
-        title = tb.Label(self.main_frame, bootstyle="secondary", text=opciones[num], font=FONT_LETTERS,
-                         anchor="center",
-                         width=20, foreground=FONT_COLOR_LETTERS)
-        title.grid(row=0, column=0, pady=10)
         options = ttk.Combobox(self.main_frame, values=opciones, bootstyle="dark")
         options.configure(cursor='hand2', state='readonly')
-        options.grid(row=0, column=1, pady=10)
+        options.set(opciones[0])
+        options.grid(row=0, column=0, pady=10)
+        options.bind("<<ComboboxSelected>>", self.on_combobox_change)
 
-
+    def on_combobox_change(self, event):
+        selected_option = event.widget.get()
+        if selected_option == "P 65, 2 Vías":
+            self.type_desglose = 1
+        elif selected_option == "P 65, 3 Vías":
+            self.type_desglose = 2
+        elif selected_option == "Tradicional, 2 Vías":
+            self.type_desglose = 3
+        elif selected_option == "Tradicional, 3 Vías":
+            self.type_desglose = 4
+        self.calculate_values()
+        print(self.type_desglose)
 
     def painting_frame(self):
         num = 1
@@ -225,11 +230,19 @@ class App(tb.Window):
             # Obtener los valores correspondientes
             valor_ancho = str(self.ancho_values[clave_ancho])
             valor_alto = str(self.alto_values[clave_alto])
-            self.mixto_math(valor_ancho, valor_alto, i)
+            self.mixto_math(valor_ancho, valor_alto, i, self.type_desglose)
+
         self.update_labels()
 
-    def mixto_math(self, ancho, alto, num):
+    def mixto_math(self, ancho, alto, num, type_desglose):
         # Verificar si ancho o alto son nulos, vacíos o 0
+        resto_rc = 0
+        resto_r = 0
+        resto_l = 0
+        resto_j = 0
+        resto_can = 0
+        resto_cal = 0
+        two_or_three = 0
         if not ancho or ancho.strip() == "0" or not alto or alto.strip() == "0":
             self.results[f'desglose_{num}'] = {
                 "Riel y Cabezal": "",
@@ -246,43 +259,82 @@ class App(tb.Window):
             self.can = {f"Cristal Ancho {num}": ""}
             self.cal = {f"Cristal Alto {num}": ""}
             return
+        if type_desglose == 1:
+            # P65 2 vias
+            resto_rc = "1 3/8"
+            resto_r = "1 1/8"
+            resto_l = "1/8"
+            resto_j = "2 1/8"
+            resto_can = "6 1/2"
+            resto_cal = 5
+            two_or_three = 2
+        # P65 3 vias
+        if type_desglose == 2:
+            resto_rc = "1 3/8"
+            resto_r = "3/8"
+            resto_l = "1/8"
+            resto_j = "2 1/8"
+            resto_can = "7 3/8"
+            resto_cal = 5
+            two_or_three = 3
+        # Tradicional 2 vias
+        if type_desglose == 3:
+            resto_rc = "1/8"
+            resto_r = "1/2"
+            resto_l = "1/2"
+            resto_j = "1"
+            resto_can = "4"
+            resto_cal = 4
+            two_or_three = 2
+        # Tradicional 3 vias
+        if type_desglose == 4:
+            resto_rc = "1/8"
+            resto_r = "0"
+            resto_l = "1/2"
+            resto_j = "1"
+            resto_can = "6"
+            resto_cal = 4
+            two_or_three = 3
 
         # La f al final de la variable significa fraction
         ancho_f = sum(Fraction(s) for s in ancho.split())
         alto_f = sum(Fraction(s) for s in alto.split())
 
         # Riel y Cabezal
-        resto_rc = "1 3/8"
         resto_rc_f = sum(Fraction(s) for s in resto_rc.split())
         rc = ancho_f - resto_rc_f
         rc = self.decimal_to_fraction_inches(rc)
 
         # Ruleta
-        resto_r = "1 1/8"
+        r = 0
+        print(r)
         resto_r_f = sum(Fraction(s) for s in resto_r.split())
-        r = (ancho_f - resto_r_f) / 3
+
+        if type_desglose == 2:
+            r = (ancho_f + resto_r_f) / two_or_three
+        elif type_desglose == 3:
+            r = ancho_f / two_or_three
+        else:
+            r = (ancho_f - resto_r_f) / two_or_three
         r = self.decimal_to_fraction_inches(r)
 
         # Lateral
-        resto_l = "1/8"
         resto_l_f = sum(Fraction(s) for s in resto_l.split())
         l = alto_f - resto_l_f
         l = self.decimal_to_fraction_inches(l)
 
         # Jamba
-        resto_j = "2 1/8"
         resto_j_f = sum(Fraction(s) for s in resto_j.split())
         j = alto_f - resto_j_f
         j = self.decimal_to_fraction_inches(j)
 
         # Cristal ancho
-        resto_can = "6 1/2"
         resto_can_f = sum(Fraction(s) for s in resto_can.split())
-        can = (ancho_f - resto_can_f) / 3
+        can = (ancho_f - resto_can_f) / two_or_three
         can = self.decimal_to_fraction_inches(can)
 
         # Cristal alto
-        cal = alto_f - 5
+        cal = alto_f - resto_cal
         cal = self.decimal_to_fraction_inches(cal)
 
         self.results[f'desglose_{num}'] = {
@@ -413,7 +465,6 @@ class App(tb.Window):
                 hoja.cell(row=fila + 1, column=columna, value=sub_value)
                 columna += 1
             fila += 2
-
 
         libro.save(nuevo_excel)
         print("Archivo guardado  exitosamente.")
