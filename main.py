@@ -7,6 +7,7 @@ from fractions import Fraction
 from openpyxl import load_workbook, Workbook
 from openpyxl.styles import PatternFill, Border, Alignment, Protection, Font
 import shutil
+import win32com.client as win32
 
 # Styles
 #morph
@@ -62,9 +63,39 @@ class App(tb.Window):
         menubar = Menu(self)
         self.config(menu=menubar)
         export_menu = Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="Exportar a Excel", menu=export_menu)
+        menubar.add_cascade(label="Archivo", menu=export_menu)
         export_menu.add_command(label="Exportar", command=self.export_to_excel)
+        export_menu.add_command(label="Imprimir", command=self.print_sheets)
 
+    @staticmethod
+    def print_sheets():
+        # Ruta del archivo Excel
+        ruta_archivo = "C:/Users/EJ/PycharmProjects/Desglose/Formato desglose.xlsx"
+
+        # Inicializar Excel a través de COM
+        excel = win32.Dispatch('Excel.Application')
+        excel.Visible = False  # Hacer Excel no visible
+
+        # Abrir el archivo
+        libro = excel.Workbooks.Open(ruta_archivo)
+
+        # Lista de nombres de hojas
+        nombres_hojas = [hoja.Name for hoja in libro.Sheets]
+        print("Hojas en el archivo:", nombres_hojas)
+
+        # Imprimir una hoja específica
+        nombre_hoja = '1-12'
+        if nombre_hoja in nombres_hojas:
+            hoja = libro.Sheets[nombre_hoja]
+            hoja.PrintOut()  # Imprimir la hoja específica
+        else:
+            print(f"La hoja {nombre_hoja} no existe en el archivo.")
+
+        # Cerrar el libro sin guardar cambios
+        libro.Close(SaveChanges=False)
+
+        # Salir de Excel
+        excel.Quit()
     def text_title(self):
         opciones = ["P 65, 2 Vías", "P 65, 3 Vías", "Tradicional, 2 Vías", "Tradicional, 3 Vías"]
         options = ttk.Combobox(self.main_frame, values=opciones, bootstyle="dark")
@@ -209,7 +240,6 @@ class App(tb.Window):
         next_page.grid(row=1, column=2)
         back_page = tb.Button(self, text="<", command=lambda: self.pagination("<"), bootstyle="dark")
         back_page.grid(row=1, column=0)
-
     def saving_entrys(self):
         # Guardando los valores de los entrys alto-ancho
         actual_label = self.actual_label
