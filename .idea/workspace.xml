@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="95ed81de-b66f-4122-a527-fbd6803061ef" name="Changes" comment="&quot;Boton para cambiar a los diferentes desgloses actualizado&quot;">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Formato desglose.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Formato desglose.xlsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

@@ -67,8 +67,7 @@ class App(tb.Window):
         export_menu.add_command(label="Exportar", command=self.export_to_excel)
         export_menu.add_command(label="Imprimir", command=self.print_sheets)
 
-    @staticmethod
-    def print_sheets():
+    def print_sheets(self):
         # Ruta del archivo Excel
         ruta_archivo = "C:/Users/EJ/PycharmProjects/Desglose/Formato desglose.xlsx"
 
@@ -82,20 +81,26 @@ class App(tb.Window):
         # Lista de nombres de hojas
         nombres_hojas = [hoja.Name for hoja in libro.Sheets]
         print("Hojas en el archivo:", nombres_hojas)
+        uno_tres = libro.Sheets['1-3']
+        uno_seis = libro.Sheets['1-6']
+        uno_nueve = libro.Sheets['1-9']
+        uno_doce = libro.Sheets['1-12']
+        trece_quince = libro.Sheets['13-15']
+        trece_diezocho = libro.Sheets['13-18']
+        trece_ventiuno = libro.Sheets['13-21']
+        trece_venticuatro = libro.Sheets['13-24']
+        venticinco_siete = libro.Sheets['1-12']
+        veinticindo_cero = libro.Sheets['1-12']
+        venticinco_tres = libro.Sheets['1-12']
+        venticinco_seis = libro.Sheets['1-12']
 
-        # Imprimir una hoja específica
-        nombre_hoja = '1-12'
-        if nombre_hoja in nombres_hojas:
-            hoja = libro.Sheets[nombre_hoja]
-            hoja.PrintOut()  # Imprimir la hoja específica
-        else:
-            print(f"La hoja {nombre_hoja} no existe en el archivo.")
 
-        # Cerrar el libro sin guardar cambios
+
+        # else:
+        #     uno_seis.PrintOut()
         libro.Close(SaveChanges=False)
-
-        # Salir de Excel
         excel.Quit()
+
     def text_title(self):
         opciones = ["P 65, 2 Vías", "P 65, 3 Vías", "Tradicional, 2 Vías", "Tradicional, 3 Vías"]
         options = ttk.Combobox(self.main_frame, values=opciones, bootstyle="dark")
@@ -240,6 +245,7 @@ class App(tb.Window):
         next_page.grid(row=1, column=2)
         back_page = tb.Button(self, text="<", command=lambda: self.pagination("<"), bootstyle="dark")
         back_page.grid(row=1, column=0)
+
     def saving_entrys(self):
         # Guardando los valores de los entrys alto-ancho
         actual_label = self.actual_label
